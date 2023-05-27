@@ -1,7 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
-
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
@@ -14,11 +13,30 @@ export const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  button: {
+  buttonWrapper: {
+    display: "flex",
     position: "absolute",
     bottom: 0,
     width: "100%",
+    zIndex: 1000,
+    flexDirection: "row",
   },
+  button: {
+    flexGrow: 1,
+    backgroundColor: "lightgreen",
+    padding: 20,
+    alignItems: "center",
+  },
+  settingsButton: {
+    backgroundColor: "yellow",
+  },
+  stopButton: {
+    backgroundColor: "red",
+    flexGrow: 1,
+    padding: 20,
+    alignItems: "center",
+  },
+
   centeredView: {
     flex: 1,
     justifyContent: "center",
@@ -39,11 +57,15 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
   },
   openButton: {
-    backgroundColor: "#F194FF",
+    backgroundColor: "lightgreen",
     borderRadius: 20,
-    padding: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     elevation: 2,
   },
   textStyle: {
@@ -52,8 +74,15 @@ export const styles = StyleSheet.create({
     textAlign: "center",
   },
   modalText: {
-    marginBottom: 15,
     textAlign: "center",
+  },
+  textInput: {
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: "black",
+    borderRadius: 5,
+    marginBottom: 15,
+    width: 100,
   },
 });
 
