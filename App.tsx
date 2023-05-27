@@ -16,6 +16,7 @@ import {
   PinchGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
 import { saveImage } from "./saveImage";
+import { CameraFullScreen } from "./components/CameraFullScreen";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
@@ -149,35 +150,36 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <Camera style={styles.camera} type={CameraType.back} ref={cameraRef} />
-      <PinchGestureHandler onGestureEvent={onPinch}>
-        <PinchAnimatedView
-          style={{
-            position: "absolute",
-            zIndex: 900,
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <PanGestureHandler onGestureEvent={onDrag}>
-            <PanAnimatedView
-              style={[
-                containerStyle,
-                sizeStyle,
-                {
-                  position: "absolute",
-                  zIndex: 100,
-                  top: 0,
-                  left: 0,
-                  borderWidth: 2,
-                  borderRadius: 2,
-                  borderColor: "red",
-                },
-              ]}
-            />
-          </PanGestureHandler>
-        </PinchAnimatedView>
-      </PinchGestureHandler>
+      <CameraFullScreen ref={cameraRef}>
+        <PinchGestureHandler onGestureEvent={onPinch}>
+          <PinchAnimatedView
+            style={{
+              position: "absolute",
+              zIndex: 900,
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <PanGestureHandler onGestureEvent={onDrag}>
+              <PanAnimatedView
+                style={[
+                  containerStyle,
+                  sizeStyle,
+                  {
+                    position: "absolute",
+                    zIndex: 100,
+                    top: 0,
+                    left: 0,
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    borderColor: "red",
+                  },
+                ]}
+              />
+            </PanGestureHandler>
+          </PinchAnimatedView>
+        </PinchGestureHandler>
+      </CameraFullScreen>
       <View style={styles.button}>
         <Button
           title={capturing ? "Stop Capture" : "Start Capture"}
