@@ -1,8 +1,23 @@
 import { StatusBar } from "expo-status-bar";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, StyleSheet, View, Text } from "react-native";
 import { Camera, CameraType } from "expo-camera";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import * as ImageManipulator from "expo-image-manipulator";
+import Animated, {
+  runOnJS,
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  PinchGestureHandler,
+  PinchGestureHandlerGestureEvent,
+} from "react-native-gesture-handler";
+
+const PanAnimatedView = Animated.createAnimatedComponent(View);
+const PinchAnimatedView = Animated.createAnimatedComponent(View);
 
 export default function App() {
   const [capturing, setCapturing] = useState(false);
@@ -10,12 +25,76 @@ export default function App() {
   const cameraRef = useRef<Camera | null>(null);
   const captureIntervalRef = useRef<NodeJS.Timer | null>(null);
 
+  const [poi, setPoi] = useState({ x: 100, y: 100, width: 100, height: 100 });
+
+  const translateX = useSharedValue(poi.x);
+  const translateY = useSharedValue(poi.y);
+  const width = useSharedValue(poi.width);
+  const height = useSharedValue(poi.height);
+
+  const onDrag = useAnimatedGestureHandler({
+    onStart: (event, context: any) => {
+      context.translateX = translateX.value;
+      context.translateY = translateY.value;
+    },
+    onActive: (event, context) => {
+      translateX.value = event.translationX + context.translateX;
+      translateY.value = event.translationY + context.translateY;
+    },
+    onEnd: () => {
+      runOnJS(setPoi)({
+        ...poi,
+        x: translateX.value,
+        y: translateY.value,
+      });
+    },
+  });
+
+  const onPinch = useAnimatedGestureHandler<
+    PinchGestureHandlerGestureEvent,
+    any
+  >({
+    onStart: (event, context: any) => {
+      context.width = width.value;
+      context.height = height.value;
+    },
+    onActive: (event, context) => {
+      width.value = event.scale * context.width;
+      height.value = event.scale * context.height;
+    },
+    onEnd: (event, context) => {
+      runOnJS(setPoi)({
+        ...poi,
+        width: context.width,
+        height: context.height,
+      });
+    },
+  });
+
+  const containerStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: translateX.value,
+        },
+        {
+          translateY: translateY.value,
+        },
+      ],
+    };
+  });
+
+  const sizeStyle = useAnimatedStyle(() => {
+    return {
+      width: width.value,
+      height: height.value,
+    };
+  });
+
   if (!permission || !permission.granted) {
     requestPermission();
     return <View />;
   }
-
-  const poi = { x: 100, y: 100, width: 100, height: 100 };
 
   const handleCapture = async () => {
     if (cameraRef.current) {
@@ -54,21 +133,44 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
-      <Camera
-        style={styles.camera}
-        type={CameraType.back}
-        ref={cameraRef}
-      ></Camera>
+    <GestureHandlerRootView style={styles.container}>
+      <Camera style={styles.camera} type={CameraType.back} ref={cameraRef} />
+      <PinchGestureHandler onGestureEvent={onPinch}>
+        <PinchAnimatedView
+          style={{
+            position: "absolute",
+            zIndex: 900,
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <PanGestureHandler onGestureEvent={onDrag}>
+            <PanAnimatedView
+              style={[
+                containerStyle,
+                sizeStyle,
+                {
+                  position: "absolute",
+                  zIndex: 100,
+                  top: 0,
+                  left: 0,
+                  borderWidth: 2,
+                  borderRadius: 2,
+                  borderColor: "red",
+                },
+              ]}
+            />
+          </PanGestureHandler>
+        </PinchAnimatedView>
+      </PinchGestureHandler>
       <View style={styles.button}>
         <Button
           title={capturing ? "Stop Capture" : "Start Capture"}
           onPress={capturing ? stopCapture : startCapture}
         />
       </View>
-
       <StatusBar style="auto" />
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -89,5 +191,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
+    zIndex: 1000,
   },
 });
