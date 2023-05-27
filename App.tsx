@@ -15,6 +15,7 @@ import {
   PinchGestureHandler,
   PinchGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
+import { saveImage } from "./saveImage";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
@@ -24,6 +25,9 @@ export default function App() {
   const [permission, requestPermission] = Camera.useCameraPermissions();
   const cameraRef = useRef<Camera | null>(null);
   const captureIntervalRef = useRef<NodeJS.Timer | null>(null);
+  const [timeLapseDurationInSeconds, setTimeLapseDurationInSeconds] =
+    useState(5);
+  const [timeStepInSeconds, setTimeStepInSeconds] = useState(1);
 
   const [poi, setPoi] = useState({ x: 100, y: 100, width: 100, height: 100 });
 
@@ -101,15 +105,18 @@ export default function App() {
       const options = { quality: 1, base64: true };
       const data = await cameraRef.current.takePictureAsync(options);
 
+      const multiplierX = 5;
+      const multiplierY = 5;
+
       const result = await ImageManipulator.manipulateAsync(
         data.uri,
         [
           {
             crop: {
-              originX: poi.x,
-              originY: poi.y,
-              width: poi.width,
-              height: poi.height,
+              originX: poi.x * multiplierX,
+              originY: poi.y * multiplierY,
+              width: poi.width * multiplierX,
+              height: poi.height * multiplierY,
             },
           },
         ],
@@ -117,12 +124,20 @@ export default function App() {
       );
 
       console.log(result);
+      saveImage(result.uri);
     }
   };
 
   const startCapture = () => {
     setCapturing(true);
-    captureIntervalRef.current = setInterval(handleCapture, 1000);
+    let counter = 0;
+    captureIntervalRef.current = setInterval(() => {
+      handleCapture();
+      counter = counter + timeStepInSeconds;
+      if (counter >= timeLapseDurationInSeconds) {
+        stopCapture();
+      }
+    }, timeStepInSeconds * 1000);
   };
 
   const stopCapture = () => {
