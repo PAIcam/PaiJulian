@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { Button, StyleSheet, View, Text } from "react-native";
+import { Button, StyleSheet, View, Text, Modal } from "react-native";
 import { Camera, CameraType } from "expo-camera";
 import { useRef, useState } from "react";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -16,6 +16,7 @@ import {
   PinchGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
 import { saveImage } from "./saveImage";
+import ModalComponent from "./components/Modal";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
@@ -28,7 +29,7 @@ export default function App() {
   const [timeLapseDurationInSeconds, setTimeLapseDurationInSeconds] =
     useState(5);
   const [timeStepInSeconds, setTimeStepInSeconds] = useState(1);
-
+  const [modalVisible, setModalVisible] = useState(false);
   const [poi, setPoi] = useState({ x: 100, y: 100, width: 100, height: 100 });
 
   const translateX = useSharedValue(poi.x);
@@ -183,7 +184,21 @@ export default function App() {
           title={capturing ? "Stop Capture" : "Start Capture"}
           onPress={capturing ? stopCapture : startCapture}
         />
+        <Button
+          title={"Open Settings"}
+          onPress={() => setModalVisible(true)}
+        />
       </View>
+      <Modal 
+        animationType="slide" transparent={true} visible={modalVisible} 
+        onRequestClose={() => setModalVisible(!modalVisible)}
+      >
+        <ModalComponent 
+          setVisible={setModalVisible} visible={modalVisible}
+          setTimeLapseDurationInSeconds={setTimeLapseDurationInSeconds}
+          setTimeStepInSeconds={setTimeStepInSeconds}
+        />
+      </Modal>
       <StatusBar style="auto" />
     </GestureHandlerRootView>
   );
