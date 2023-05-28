@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { Button, StyleSheet, View, Text, Modal } from "react-native";
+import { TouchableOpacity, StyleSheet, View, Text, Modal } from "react-native";
 import { Camera, CameraType } from "expo-camera";
 import { useRef, useState } from "react";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -17,6 +17,7 @@ import {
 } from "react-native-gesture-handler";
 import { saveImage } from "./saveImage";
 import ModalComponent from "./components/Modal";
+import styles from "./styles";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
@@ -124,7 +125,6 @@ export default function App() {
         { compress: 1, format: ImageManipulator.SaveFormat.PNG }
       );
 
-      console.log(result);
       saveImage(result.uri);
     }
   };
@@ -179,22 +179,31 @@ export default function App() {
           </PanGestureHandler>
         </PinchAnimatedView>
       </PinchGestureHandler>
-      <View style={styles.button}>
-        <Button
-          title={capturing ? "Stop Capture" : "Start Capture"}
-          onPress={capturing ? stopCapture : startCapture}
-        />
-        <Button
-          title={"Open Settings"}
-          onPress={() => setModalVisible(true)}
-        />
-      </View>
-      <Modal 
-        animationType="slide" transparent={true} visible={modalVisible} 
+      {!modalVisible && (
+        <View style={styles.buttonWrapper}>
+          <TouchableOpacity
+            onPress={capturing ? stopCapture : startCapture}
+            style={capturing ? styles.stopButton : styles.button}
+          >
+            <Text>{capturing ? "Stop Capture" : "Start Capture"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={{ ...styles.button, ...styles.settingsButton }}
+          >
+            <Text>Open Settings</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
         onRequestClose={() => setModalVisible(!modalVisible)}
       >
-        <ModalComponent 
-          setVisible={setModalVisible} visible={modalVisible}
+        <ModalComponent
+          setVisible={setModalVisible}
+          visible={modalVisible}
           setTimeLapseDurationInSeconds={setTimeLapseDurationInSeconds}
           setTimeStepInSeconds={setTimeStepInSeconds}
         />
@@ -203,24 +212,3 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    color: "white",
-  },
-  camera: {
-    width: "100%",
-    height: "100%",
-  },
-  button: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    zIndex: 1000,
-  },
-});
