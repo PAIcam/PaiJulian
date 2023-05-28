@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
 import { Camera } from "expo-camera";
 

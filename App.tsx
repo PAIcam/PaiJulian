@@ -4,15 +4,13 @@ import {
   TouchableOpacity,
   View,
   Text,
-  Touchable,
   Dimensions,
   Modal,
 } from "react-native";
-import { Camera, CameraType } from "expo-camera";
+import { Camera } from "expo-camera";
 import { useRef, useState } from "react";
 import * as ImageManipulator from "expo-image-manipulator";
 import Animated, {
-  runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
