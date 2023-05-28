@@ -6,6 +6,7 @@ interface modalProps {
   visible: boolean;
   setTimeLapseDurationInSeconds: React.Dispatch<React.SetStateAction<number>>;
   setTimeStepInSeconds: React.Dispatch<React.SetStateAction<number>>;
+  setRemainingTime: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function ModalComponent(props: modalProps) {
@@ -13,13 +14,17 @@ export default function ModalComponent(props: modalProps) {
   const visible = props.visible;
   const setTimeLapseDurationInSeconds = props.setTimeLapseDurationInSeconds;
   const setTimeStepInSeconds = props.setTimeStepInSeconds;
+  const setRemainingTime = props.setRemainingTime;
 
   return (
     <View style={styles.centeredView}>
       <View style={styles.modalView}>
         <Text style={styles.modalText}>Time Lapse (s)</Text>
         <TextInput
-          onChangeText={(text) => setTimeLapseDurationInSeconds(parseInt(text))}
+          onChangeText={(text) => {
+            setTimeLapseDurationInSeconds(parseInt(text));
+            setRemainingTime(parseInt(text));
+          }}
           keyboardType="numeric"
           style={styles.textInput}
         />

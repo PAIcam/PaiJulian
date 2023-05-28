@@ -26,6 +26,7 @@ import { CameraFullScreen } from "./components/CameraFullScreen";
 import { SafeAreaView } from "react-native";
 import ModalComponent from "./components/Modal";
 import styles from "./styles";
+import { Countdown } from "./components/Countdown";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
@@ -40,6 +41,7 @@ export default function App() {
     useState(5);
   const [timeStepInSeconds, setTimeStepInSeconds] = useState(1);
 
+  const [remainingTime, setRemainingTime] = useState(5);
   const poi = { x: 10, y: 10, width: 200, height: 200 };
 
   const translateX = useSharedValue(poi.x);
@@ -157,6 +159,10 @@ export default function App() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <GestureHandlerRootView style={styles.container}>
+      <Text style={styles.information}>
+        Duration: {timeLapseDurationInSeconds}s Timestep: {timeStepInSeconds}s
+      </Text>
+      {capturing && <Countdown time={remainingTime} capturing={capturing} />}
         <CameraFullScreen ref={cameraRef}>
           <PinchGestureHandler onGestureEvent={onPinch}>
             <PinchAnimatedView
@@ -214,6 +220,7 @@ export default function App() {
             visible={modalVisible}
             setTimeLapseDurationInSeconds={setTimeLapseDurationInSeconds}
             setTimeStepInSeconds={setTimeStepInSeconds}
+            setRemainingTime={setRemainingTime}
           />
         </Modal>
         <StatusBar style="auto" />
