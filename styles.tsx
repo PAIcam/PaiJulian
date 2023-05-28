@@ -85,22 +85,32 @@ const styles = StyleSheet.create({
     width: 100,
   },
   counter: {
-    paddingTop: 50,
-    position: "absolute",
-    zIndex: 1000,
     flex: 1,
     top: 0,
     color: "white",
     fontWeight: "bold",
   },
   information: {
+    flexDirection: "row",
     position: "absolute",
-    marginTop: 20,
     zIndex: 1000,
     flex: 1,
     top: 0,
+    backgroundColor: "rgba(100,100,100,0.5)",
+    paddingBottom: 5,
+    paddingTop: 40,
+    borderRadius: 3,
+    width: "100%",
+  },
+  informationItem: {
+    width: "50%",
+    alignItems: "center",
+    padding: 5,
+  },
+  informationText: {
     color: "white",
     fontWeight: "bold",
+    paddingBottom: 5,
   },
 });
 

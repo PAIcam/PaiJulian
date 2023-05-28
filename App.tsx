@@ -159,10 +159,22 @@ export default function App() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <GestureHandlerRootView style={styles.container}>
-      <Text style={styles.information}>
-        Duration: {timeLapseDurationInSeconds}s Timestep: {timeStepInSeconds}s
-      </Text>
-      {capturing && <Countdown time={remainingTime} capturing={capturing} />}
+        <View style={styles.information}>
+          <View style={styles.informationItem}>
+            <Text style={styles.informationText}>Capture Settings:</Text>
+            <View>
+              <Text style={styles.informationText}>
+                Duration: {timeLapseDurationInSeconds}s
+              </Text>
+              <Text style={styles.informationText}>
+                Timestep: {timeStepInSeconds}s
+              </Text>
+            </View>
+          </View>
+          <View style={styles.informationItem}>
+            {capturing && <Countdown time={remainingTime} capturing={capturing} />}
+          </View>
+        </View>
         <CameraFullScreen ref={cameraRef}>
           <PinchGestureHandler onGestureEvent={onPinch}>
             <PinchAnimatedView
