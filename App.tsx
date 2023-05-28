@@ -3,10 +3,12 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import {
   Button,
   StyleSheet,
+  TouchableOpacity
   View,
   Text,
   Touchable,
   Dimensions,
+  Modal,
 } from "react-native";
 import { Camera, CameraType } from "expo-camera";
 import { useRef, useState } from "react";
@@ -26,12 +28,15 @@ import {
 import { saveImage } from "./saveImage";
 import { CameraFullScreen } from "./components/CameraFullScreen";
 import { SafeAreaView } from "react-native";
+import ModalComponent from "./components/Modal";
+import styles from "./styles";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
 
 export default function App() {
   const [capturing, setCapturing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [permission, requestPermission] = Camera.useCameraPermissions();
   const cameraRef = useRef<Camera | null>(null);
   const captureIntervalRef = useRef<NodeJS.Timer | null>(null);
@@ -130,7 +135,6 @@ export default function App() {
         { compress: 1, format: ImageManipulator.SaveFormat.PNG }
       );
 
-      console.log(result);
       saveImage(result.uri);
     }
   };
@@ -187,31 +191,37 @@ export default function App() {
             </PinchAnimatedView>
           </PinchGestureHandler>
         </CameraFullScreen>
-        <View style={styles.button}>
-          <Button
-            title={capturing ? "Stop Capture" : "Start Capture"}
-            onPress={capturing ? stopCapture : startCapture}
+          {!modalVisible && (
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity
+              onPress={capturing ? stopCapture : startCapture}
+              style={capturing ? styles.stopButton : styles.button}
+            >
+              <Text>{capturing ? "Stop Capture" : "Start Capture"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              style={{ ...styles.button, ...styles.settingsButton }}
+            >
+              <Text>Open Settings</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(!modalVisible)}
+        >
+          <ModalComponent
+            setVisible={setModalVisible}
+            visible={modalVisible}
+            setTimeLapseDurationInSeconds={setTimeLapseDurationInSeconds}
+            setTimeStepInSeconds={setTimeStepInSeconds}
           />
-        </View>
+        </Modal>
         <StatusBar style="auto" />
       </GestureHandlerRootView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    color: "white",
-  },
-  button: {
-    position: "absolute",
-    bottom: 10,
-    width: "50%",
-    zIndex: 1000,
-  },
-});
