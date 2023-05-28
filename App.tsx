@@ -1,5 +1,13 @@
 import { StatusBar } from "expo-status-bar";
-import { Button, StyleSheet, View, Text, Modal } from "react-native";
+import * as ScreenOrientation from "expo-screen-orientation";
+import {
+  Button,
+  StyleSheet,
+  View,
+  Text,
+  Touchable,
+  Dimensions,
+} from "react-native";
 import { Camera, CameraType } from "expo-camera";
 import { useRef, useState } from "react";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -16,7 +24,8 @@ import {
   PinchGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
 import { saveImage } from "./saveImage";
-import ModalComponent from "./components/Modal";
+import { CameraFullScreen } from "./components/CameraFullScreen";
+import { SafeAreaView } from "react-native";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
@@ -29,8 +38,8 @@ export default function App() {
   const [timeLapseDurationInSeconds, setTimeLapseDurationInSeconds] =
     useState(5);
   const [timeStepInSeconds, setTimeStepInSeconds] = useState(1);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [poi, setPoi] = useState({ x: 100, y: 100, width: 100, height: 100 });
+
+  const poi = { x: 10, y: 10, width: 200, height: 200 };
 
   const translateX = useSharedValue(poi.x);
   const translateY = useSharedValue(poi.y);
@@ -46,13 +55,6 @@ export default function App() {
       translateX.value = event.translationX + context.translateX;
       translateY.value = event.translationY + context.translateY;
     },
-    onEnd: () => {
-      runOnJS(setPoi)({
-        ...poi,
-        x: translateX.value,
-        y: translateY.value,
-      });
-    },
   });
 
   const onPinch = useAnimatedGestureHandler<
@@ -67,25 +69,12 @@ export default function App() {
       width.value = event.scale * context.width;
       height.value = event.scale * context.height;
     },
-    onEnd: (event, context) => {
-      runOnJS(setPoi)({
-        ...poi,
-        width: context.width,
-        height: context.height,
-      });
-    },
   });
 
   const containerStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        {
-          translateX: translateX.value,
-        },
-        {
-          translateY: translateY.value,
-        },
-      ],
+      left: translateX.value,
+      top: translateY.value,
     };
   });
 
@@ -106,18 +95,35 @@ export default function App() {
       const options = { quality: 1, base64: true };
       const data = await cameraRef.current.takePictureAsync(options);
 
-      const multiplierX = 5;
-      const multiplierY = 5;
+      const screenOrientation = await ScreenOrientation.getOrientationAsync();
+      const isPortrait =
+        screenOrientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
+        screenOrientation === ScreenOrientation.Orientation.PORTRAIT_DOWN;
+
+      const screenWidth = isPortrait
+        ? Dimensions.get("window").width
+        : Dimensions.get("window").height;
+      const screenHeight = isPortrait
+        ? Dimensions.get("window").height
+        : Dimensions.get("window").width;
+
+      const imageWidth = data.width;
+      const imageHeight = data.height;
+
+      const cropWidth = (width.value / screenWidth) * imageWidth;
+      const cropHeight = (height.value / screenHeight) * imageHeight;
+      const originX = (translateX.value / screenWidth) * imageWidth;
+      const originY = (translateY.value / screenHeight) * imageHeight;
 
       const result = await ImageManipulator.manipulateAsync(
         data.uri,
         [
           {
             crop: {
-              originX: poi.x * multiplierX,
-              originY: poi.y * multiplierY,
-              width: poi.width * multiplierX,
-              height: poi.height * multiplierY,
+              originX,
+              originY,
+              width: cropWidth,
+              height: cropHeight,
             },
           },
         ],
@@ -149,58 +155,47 @@ export default function App() {
   };
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <Camera style={styles.camera} type={CameraType.back} ref={cameraRef} />
-      <PinchGestureHandler onGestureEvent={onPinch}>
-        <PinchAnimatedView
-          style={{
-            position: "absolute",
-            zIndex: 900,
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <PanGestureHandler onGestureEvent={onDrag}>
-            <PanAnimatedView
-              style={[
-                containerStyle,
-                sizeStyle,
-                {
-                  position: "absolute",
-                  zIndex: 100,
-                  top: 0,
-                  left: 0,
-                  borderWidth: 2,
-                  borderRadius: 2,
-                  borderColor: "red",
-                },
-              ]}
-            />
-          </PanGestureHandler>
-        </PinchAnimatedView>
-      </PinchGestureHandler>
-      <View style={styles.button}>
-        <Button
-          title={capturing ? "Stop Capture" : "Start Capture"}
-          onPress={capturing ? stopCapture : startCapture}
-        />
-        <Button
-          title={"Open Settings"}
-          onPress={() => setModalVisible(true)}
-        />
-      </View>
-      <Modal 
-        animationType="slide" transparent={true} visible={modalVisible} 
-        onRequestClose={() => setModalVisible(!modalVisible)}
-      >
-        <ModalComponent 
-          setVisible={setModalVisible} visible={modalVisible}
-          setTimeLapseDurationInSeconds={setTimeLapseDurationInSeconds}
-          setTimeStepInSeconds={setTimeStepInSeconds}
-        />
-      </Modal>
-      <StatusBar style="auto" />
-    </GestureHandlerRootView>
+    <SafeAreaView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.container}>
+        <CameraFullScreen ref={cameraRef}>
+          <PinchGestureHandler onGestureEvent={onPinch}>
+            <PinchAnimatedView
+              style={{
+                position: "absolute",
+                zIndex: 900,
+                width: "100%",
+                height: "100%",
+                top: poi.y,
+                left: poi.x,
+              }}
+            >
+              <PanGestureHandler onGestureEvent={onDrag}>
+                <PanAnimatedView
+                  style={[
+                    containerStyle,
+                    sizeStyle,
+                    {
+                      position: "absolute",
+                      zIndex: 100,
+                      borderWidth: 2,
+                      borderRadius: 2,
+                      borderColor: "red",
+                    },
+                  ]}
+                />
+              </PanGestureHandler>
+            </PinchAnimatedView>
+          </PinchGestureHandler>
+        </CameraFullScreen>
+        <View style={styles.button}>
+          <Button
+            title={capturing ? "Stop Capture" : "Start Capture"}
+            onPress={capturing ? stopCapture : startCapture}
+          />
+        </View>
+        <StatusBar style="auto" />
+      </GestureHandlerRootView>
+    </SafeAreaView>
   );
 }
 
@@ -213,14 +208,10 @@ const styles = StyleSheet.create({
   text: {
     color: "white",
   },
-  camera: {
-    width: "100%",
-    height: "100%",
-  },
   button: {
     position: "absolute",
-    bottom: 0,
-    width: "100%",
+    bottom: 10,
+    width: "50%",
     zIndex: 1000,
   },
 });
