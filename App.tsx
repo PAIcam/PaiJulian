@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { TouchableOpacity, StyleSheet, View, Text, Modal } from "react-native";
 import { Camera, CameraType } from "expo-camera";
-import { useRef, useState } from "react";
+import { SetStateAction, useRef, useState } from "react";
 import * as ImageManipulator from "expo-image-manipulator";
 import Animated, {
   runOnJS,
@@ -18,6 +18,7 @@ import {
 import { saveImage } from "./saveImage";
 import ModalComponent from "./components/Modal";
 import styles from "./styles";
+import { Countdown } from "./components/Countdown";
 
 const PanAnimatedView = Animated.createAnimatedComponent(View);
 const PinchAnimatedView = Animated.createAnimatedComponent(View);
@@ -32,6 +33,7 @@ export default function App() {
   const [timeStepInSeconds, setTimeStepInSeconds] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
   const [poi, setPoi] = useState({ x: 100, y: 100, width: 100, height: 100 });
+  const [remainingTime, setRemainingTime] = useState(5);
 
   const translateX = useSharedValue(poi.x);
   const translateY = useSharedValue(poi.y);
@@ -150,6 +152,10 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
+      <Text style={styles.information}>
+        Duration: {timeLapseDurationInSeconds}s Timestep: {timeStepInSeconds}s
+      </Text>
+      {capturing && <Countdown time={remainingTime} capturing={capturing} />}
       <Camera style={styles.camera} type={CameraType.back} ref={cameraRef} />
       <PinchGestureHandler onGestureEvent={onPinch}>
         <PinchAnimatedView
@@ -206,6 +212,7 @@ export default function App() {
           visible={modalVisible}
           setTimeLapseDurationInSeconds={setTimeLapseDurationInSeconds}
           setTimeStepInSeconds={setTimeStepInSeconds}
+          setRemainingTime={setRemainingTime}
         />
       </Modal>
       <StatusBar style="auto" />

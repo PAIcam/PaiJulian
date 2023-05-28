@@ -84,6 +84,24 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     width: 100,
   },
+  counter: {
+    paddingTop: 50,
+    position: "absolute",
+    zIndex: 1000,
+    flex: 1,
+    top: 0,
+    color: "white",
+    fontWeight: "bold",
+  },
+  information: {
+    position: "absolute",
+    marginTop: 20,
+    zIndex: 1000,
+    flex: 1,
+    top: 0,
+    color: "white",
+    fontWeight: "bold",
+  },
 });
 
 export default styles;
