@@ -1,9 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import * as ScreenOrientation from "expo-screen-orientation";
 import {
-  Button,
-  StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
   View,
   Text,
   Touchable,
