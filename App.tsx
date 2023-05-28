@@ -130,7 +130,7 @@ export default function App() {
             },
           },
         ],
-        { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+        { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
       );
 
       saveImage(result.uri);
